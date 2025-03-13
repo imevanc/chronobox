@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/imevanc/chronobox/compare/v1.4.0...v1.5.0) (2025-03-13)
+
+
+### Features
+
+* update-readme ([#23](https://github.com/imevanc/chronobox/issues/23)) ([43ae1d0](https://github.com/imevanc/chronobox/commit/43ae1d05fb2b9eb786b17cc3de34a11501c739ae))
+
 # [1.4.0](https://github.com/imevanc/chronobox/compare/v1.3.1...v1.4.0) (2025-02-26)
 
 
