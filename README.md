@@ -158,18 +158,8 @@ Finds the exact DST transition times for a given year in a specific timezone.
 - timezone: The timezone to check (e.g., 'America/New_York').
 - returns: An object with start and end properties containing the DST transition dates, or null if no DST.
 
-## 📝 Contributing
-Contributions are welcome! Please follow these steps:
-
-
-1. Fork this repository.
-2. Create a feature branch: git checkout -b feat/feature-name.
-3. Commit your changes: git commit -m "feat: add feature-name".
-4. Push to your branch: git push origin feat/feature-name.
-5. Open a pull request.
-
 ## 📄 License
-ChronoBox is open-source software, licensed under the MIT License.
+ChronoBox is open-source software, licensed under the [MIT License](LICENSE).
 
 ## ❤️ Support
 If you find ChronoBox helpful, please give it a ⭐️ on GitHub and share it with your fellow developers!
