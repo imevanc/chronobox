@@ -669,3 +669,357 @@ describe("ChronoBox Timezone Functions", () => {
     });
   });
 });
+
+describe("ChronoBox Relative Time", () => {
+  // Helper function to create a date at a specific time offset
+  const createDateAtOffset = (offsetMs: number): Date => {
+    const date = new Date();
+    date.setTime(date.getTime() + offsetMs);
+    return date;
+  };
+
+  describe("fromNow", () => {
+    test("should return 'just now' for very recent times", () => {
+      const now = new Date();
+      const chronoBox = new ChronoBox(now);
+      expect(chronoBox.fromNow()).toBe("just now");
+    });
+
+    test("should return seconds for times less than a minute ago", () => {
+      const date = createDateAtOffset(-30 * 1000); // 30 seconds ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("30 seconds ago");
+    });
+
+    test("should return singular 'second' for 1 second", () => {
+      const date = createDateAtOffset(-1000); // 1 second ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("1 second ago");
+    });
+
+    test("should return minutes for times less than an hour ago", () => {
+      const date = createDateAtOffset(-15 * 60 * 1000); // 15 minutes ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("15 minutes ago");
+    });
+
+    test("should return singular 'minute' for 1 minute", () => {
+      const date = createDateAtOffset(-60 * 1000); // 1 minute ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("1 minute ago");
+    });
+
+    test("should return hours for times less than a day ago", () => {
+      const date = createDateAtOffset(-5 * 60 * 60 * 1000); // 5 hours ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("5 hours ago");
+    });
+
+    test("should return singular 'hour' for 1 hour", () => {
+      const date = createDateAtOffset(-60 * 60 * 1000); // 1 hour ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("1 hour ago");
+    });
+
+    test("should return days for times less than a week ago", () => {
+      const date = createDateAtOffset(-3 * 24 * 60 * 60 * 1000); // 3 days ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("3 days ago");
+    });
+
+    test("should return singular 'day' for 1 day", () => {
+      const date = createDateAtOffset(-24 * 60 * 60 * 1000); // 1 day ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("1 day ago");
+    });
+
+    test("should return weeks for times less than a month ago", () => {
+      const date = createDateAtOffset(-2 * 7 * 24 * 60 * 60 * 1000); // 2 weeks ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("2 weeks ago");
+    });
+
+    test("should return singular 'week' for 1 week", () => {
+      const date = createDateAtOffset(-7 * 24 * 60 * 60 * 1000); // 1 week ago
+      const chronoBox = new ChronoBox(date);
+      expect(chronoBox.fromNow()).toBe("1 week ago");
+    });
+
+    test("should handle future times with 'in' prefix", () => {
+      const inTwoHours = createDateAtOffset(2 * 60 * 60 * 1000); // 2 hours in the future
+      const chronoBox = new ChronoBox(inTwoHours);
+      expect(chronoBox.fromNow()).toBe("in 2 hours");
+    });
+
+    test("should use reference date when provided", () => {
+      const date = new Date("2023-01-01T00:00:00");
+      const reference = new Date("2023-01-02T00:00:00"); // 1 day later
+      const chronoBox = new ChronoBox(date);
+
+      expect(chronoBox.fromNow(reference)).toBe("1 day ago");
+    });
+  });
+
+  describe("startOf", () => {
+    test("should set to the start of the day", () => {
+      const now = new Date();
+      now.setHours(15, 30, 45, 500); // 15:30:45.500
+
+      const chronoBox = new ChronoBox(now);
+      const startOfDay = chronoBox.startOf(TimeUnit.DAYS);
+      const result = startOfDay.toDate();
+
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+      expect(result.getDate()).toBe(now.getDate());
+      expect(result.getMonth()).toBe(now.getMonth());
+      expect(result.getFullYear()).toBe(now.getFullYear());
+    });
+
+    test("should set to the start of the hour", () => {
+      const now = new Date();
+      now.setMinutes(30, 45, 500); // XX:30:45.500
+
+      const chronoBox = new ChronoBox(now);
+      const startOfHour = chronoBox.startOf(TimeUnit.HOURS);
+      const result = startOfHour.toDate();
+
+      expect(result.getHours()).toBe(now.getHours());
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    test("should set to the start of the minute", () => {
+      const now = new Date();
+      now.setSeconds(45, 500); // XX:XX:45.500
+
+      const chronoBox = new ChronoBox(now);
+      const startOfMinute = chronoBox.startOf(TimeUnit.MINUTES);
+      const result = startOfMinute.toDate();
+
+      expect(result.getMinutes()).toBe(now.getMinutes());
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    test("should set to the start of the second", () => {
+      const now = new Date();
+      now.setMilliseconds(500); // XX:XX:XX.500
+
+      const chronoBox = new ChronoBox(now);
+      const startOfSecond = chronoBox.startOf(TimeUnit.SECONDS);
+      const result = startOfSecond.toDate();
+
+      expect(result.getSeconds()).toBe(now.getSeconds());
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    test("should set to the start of the month", () => {
+      const now = new Date();
+      now.setDate(15); // 15th of the month
+
+      const chronoBox = new ChronoBox(now);
+      const startOfMonth = chronoBox.startOf(TimeUnit.MONTHS);
+      const result = startOfMonth.toDate();
+
+      expect(result.getDate()).toBe(1);
+      expect(result.getMonth()).toBe(now.getMonth());
+      expect(result.getFullYear()).toBe(now.getFullYear());
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    test("should set to the start of the year", () => {
+      const now = new Date();
+      now.setMonth(6, 15); // July 15
+
+      const chronoBox = new ChronoBox(now);
+      const startOfYear = chronoBox.startOf(TimeUnit.YEARS);
+      const result = startOfYear.toDate();
+
+      expect(result.getDate()).toBe(1);
+      expect(result.getMonth()).toBe(0); // January
+      expect(result.getFullYear()).toBe(now.getFullYear());
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    test("should set to the start of the week", () => {
+      // Test for each day of the week
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(2023, 0, 1 + i); // January 1-7, 2023
+        const dayOfWeek = date.getDay(); // 0-6 (Sunday-Saturday)
+
+        const chronoBox = new ChronoBox(date);
+        const startOfWeek = chronoBox.startOf(TimeUnit.WEEKS);
+        const result = startOfWeek.toDate();
+
+        // Your implementation uses the truncateDate utility which sets Monday as day 1
+        // Verify this is working as expected
+        const expectedDate = new Date(date);
+        const diff =
+          expectedDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        expectedDate.setDate(diff);
+        expectedDate.setHours(0, 0, 0, 0);
+
+        expect(result.getTime()).toBe(expectedDate.getTime());
+      }
+    });
+
+    test("should throw error for invalid time unit", () => {
+      const chronoBox = new ChronoBox();
+      expect(() => {
+        // @ts-ignore - Testing invalid input
+        chronoBox.startOf("invalid_unit");
+      }).toThrow(ChronoBoxError);
+    });
+  });
+
+  describe("endOf", () => {
+    test("should set to the end of the day", () => {
+      const now = new Date();
+      now.setHours(10, 30, 45, 500); // 10:30:45.500
+
+      const chronoBox = new ChronoBox(now);
+      const endOfDay = chronoBox.endOf(TimeUnit.DAYS);
+      const result = endOfDay.toDate();
+
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+      expect(result.getDate()).toBe(now.getDate());
+      expect(result.getMonth()).toBe(now.getMonth());
+      expect(result.getFullYear()).toBe(now.getFullYear());
+    });
+
+    test("should set to the end of the hour", () => {
+      const now = new Date();
+      now.setMinutes(30, 45, 500); // XX:30:45.500
+
+      const chronoBox = new ChronoBox(now);
+      const endOfHour = chronoBox.endOf(TimeUnit.HOURS);
+      const result = endOfHour.toDate();
+
+      expect(result.getHours()).toBe(now.getHours());
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    test("should set to the end of the minute", () => {
+      const now = new Date();
+      now.setSeconds(30, 500); // XX:XX:30.500
+
+      const chronoBox = new ChronoBox(now);
+      const endOfMinute = chronoBox.endOf(TimeUnit.MINUTES);
+      const result = endOfMinute.toDate();
+
+      expect(result.getMinutes()).toBe(now.getMinutes());
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    test("should set to the end of the second", () => {
+      const now = new Date();
+      now.setMilliseconds(500); // XX:XX:XX.500
+
+      const chronoBox = new ChronoBox(now);
+      const endOfSecond = chronoBox.endOf(TimeUnit.SECONDS);
+      const result = endOfSecond.toDate();
+
+      expect(result.getSeconds()).toBe(now.getSeconds());
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    test("should set to the end of the month", () => {
+      // Test different months with different numbers of days
+      const testCases = [
+        { year: 2023, month: 0, lastDay: 31 }, // January
+        { year: 2023, month: 1, lastDay: 28 }, // February (non-leap)
+        { year: 2024, month: 1, lastDay: 29 }, // February (leap)
+        { year: 2023, month: 3, lastDay: 30 }, // April
+      ];
+
+      for (const { year, month, lastDay } of testCases) {
+        const date = new Date(year, month, 15); // 15th of the month
+
+        const chronoBox = new ChronoBox(date);
+        const endOfMonth = chronoBox.endOf(TimeUnit.MONTHS);
+        const result = endOfMonth.toDate();
+
+        expect(result.getDate()).toBe(lastDay);
+        expect(result.getMonth()).toBe(month);
+        expect(result.getFullYear()).toBe(year);
+        expect(result.getHours()).toBe(23);
+        expect(result.getMinutes()).toBe(59);
+        expect(result.getSeconds()).toBe(59);
+        expect(result.getMilliseconds()).toBe(999);
+      }
+    });
+
+    test("should set to the end of the year", () => {
+      const now = new Date();
+      now.setMonth(6, 15); // July 15
+
+      const chronoBox = new ChronoBox(now);
+      const endOfYear = chronoBox.endOf(TimeUnit.YEARS);
+      const result = endOfYear.toDate();
+
+      expect(result.getDate()).toBe(31);
+      expect(result.getMonth()).toBe(11); // December
+      expect(result.getFullYear()).toBe(now.getFullYear());
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    test("should set to the end of the week", () => {
+      // Test for each day of the week
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(2023, 0, 1 + i); // January 1-7, 2023
+        const dayOfWeek = date.getDay(); // 0-6 (Sunday-Saturday)
+
+        const chronoBox = new ChronoBox(date);
+        const endOfWeek = chronoBox.endOf(TimeUnit.WEEKS);
+        const result = endOfWeek.toDate();
+
+        // Calculate expected date for the end of the week (Sunday)
+        const expectedDate = new Date(date);
+        const daysToSunday = 6 - dayOfWeek;
+        expectedDate.setDate(expectedDate.getDate() + daysToSunday);
+        expectedDate.setHours(23, 59, 59, 999);
+
+        expect(result.getDay()).toBe(0); // Sunday
+      }
+    });
+
+    test("should throw error for invalid time unit", () => {
+      const chronoBox = new ChronoBox();
+      expect(() => {
+        // @ts-ignore - Testing invalid input
+        chronoBox.endOf("invalid_unit");
+      }).toThrow(ChronoBoxError);
+    });
+  });
+
+  describe("Integration with formatting", () => {
+    test("should maintain format when using startOf/endOf", () => {
+      const chronoBox = new ChronoBox(new Date(), DateFormat.VERBOSE);
+      const startOfDay = chronoBox.startOf(TimeUnit.DAYS);
+      const endOfDay = chronoBox.endOf(TimeUnit.DAYS);
+
+      // Check that format is preserved
+      expect(startOfDay["format"]).toBe(DateFormat.VERBOSE);
+      expect(endOfDay["format"]).toBe(DateFormat.VERBOSE);
+    });
+  });
+});

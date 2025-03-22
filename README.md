@@ -158,6 +158,31 @@ Finds the exact DST transition times for a given year in a specific timezone.
 - timezone: The timezone to check (e.g., 'America/New_York').
 - returns: An object with start and end properties containing the DST transition dates, or null if no DST.
 
+---
+```typescript
+startOf<T extends TimeUnit>(unit: T): ChronoBox<TFormat>
+```
+
+Gets the start of a specified time unit for the current date.
+- unit: The time unit to get the start of (e.g., day, hour, minute).
+- Returns: A new ChronoBox instance set to the start of the specified unit.
+
+---
+```typescript
+endOf<T extends TimeUnit>(unit: T): ChronoBox<TFormat>
+```
+Gets the end of a specified time unit for the current date.
+- unit: The time unit to get the end of (e.g., day, hour, minute).
+- Returns: A new ChronoBox instance set to the end of the specified unit.
+
+---
+```typescript
+fromNow(referenceDate?: DateInput): string
+```
+Gets a human-readable string representing the time difference between the current date and now.
+- referenceDate?: An optional date to compare against. Defaults to the current time.
+- Returns: A string representing the relative time difference, e.g., "5 minutes ago", "in 2 days".
+
 ## 📄 License
 ChronoBox is open-source software, licensed under the [MIT License](LICENSE).
 
