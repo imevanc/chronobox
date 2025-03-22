@@ -464,4 +464,147 @@ export class ChronoBox<TFormat extends DateFormat | CustomFormat = DateFormat> {
 
     return result;
   }
+
+  /**
+   * Gets a human-readable string representing the time difference
+   * between the current date and now
+   * @param referenceDate Optional reference date to compare against (defaults to current time)
+   * @returns A string representing the relative time (e.g., "5 minutes ago", "in 2 days")
+   */
+  fromNow(referenceDate?: DateInput): string {
+    const now = referenceDate ? new Date(referenceDate) : new Date();
+    const diffMs = now.getTime() - this.date.getTime();
+    const isFuture = diffMs < 0;
+    const absDiffMs = Math.abs(diffMs);
+
+    // Time thresholds in milliseconds
+    const SECOND = 1000;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+    const WEEK = 7 * DAY;
+    const MONTH = 30 * DAY;
+    const YEAR = 365 * DAY;
+
+    let value: number;
+    let unit: string;
+
+    if (absDiffMs < MINUTE) {
+      value = Math.floor(absDiffMs / SECOND);
+      unit = value === 1 ? "second" : "seconds";
+    } else if (absDiffMs < HOUR) {
+      value = Math.floor(absDiffMs / MINUTE);
+      unit = value === 1 ? "minute" : "minutes";
+    } else if (absDiffMs < DAY) {
+      value = Math.floor(absDiffMs / HOUR);
+      unit = value === 1 ? "hour" : "hours";
+    } else if (absDiffMs < WEEK) {
+      value = Math.floor(absDiffMs / DAY);
+      unit = value === 1 ? "day" : "days";
+    } else if (absDiffMs < MONTH) {
+      value = Math.floor(absDiffMs / WEEK);
+      unit = value === 1 ? "week" : "weeks";
+    } else if (absDiffMs < YEAR) {
+      // Calculate months more precisely using the diff method
+      value = Math.abs(this.diff(now, TimeUnit.MONTHS));
+      unit = value === 1 ? "month" : "months";
+    } else {
+      // Calculate years more precisely using the diff method
+      value = Math.abs(this.diff(now, TimeUnit.YEARS));
+      unit = value === 1 ? "year" : "years";
+    }
+
+    // For very small differences, show "just now"
+    if (value === 0) {
+      return "just now";
+    }
+
+    return isFuture ? `in ${value} ${unit}` : `${value} ${unit} ago`;
+  }
+
+  /**
+   * Gets the start of a specified time unit for the current date
+   * @param unit The time unit to get the start of (day, hour, minute, etc.)
+   * @returns A new ChronoBox instance set to the start of the specified unit
+   */
+  startOf<T extends TimeUnit>(unit: T): ChronoBox<TFormat> {
+    if (!isValidTimeUnit(unit)) {
+      throw new ChronoBoxError(`Unsupported time unit: ${unit}`);
+    }
+
+    // Use the truncateDate utility for consistency with existing code
+    const truncatedDate = truncateDate(this.date, unit);
+    return new ChronoBox<TFormat>(truncatedDate, this.format);
+  }
+
+  /**
+   * Gets the end of a specified time unit for the current date
+   * @param unit The time unit to get the end of (day, hour, minute, etc.)
+   * @returns A new ChronoBox instance set to the end of the specified unit
+   */
+  endOf<T extends TimeUnit>(unit: T): ChronoBox<TFormat> {
+    if (!isValidTimeUnit(unit)) {
+      throw new ChronoBoxError(`Unsupported time unit: ${unit}`);
+    }
+
+    const newDate = new Date(this.date);
+
+    switch (unit) {
+      case TimeUnit.MILLISECONDS:
+        // Nothing to do for milliseconds
+        break;
+      case TimeUnit.SECONDS:
+        newDate.setMilliseconds(999);
+        break;
+      case TimeUnit.MINUTES:
+        newDate.setSeconds(59, 999);
+        break;
+      case TimeUnit.HOURS:
+        newDate.setMinutes(59, 59, 999);
+        break;
+      case TimeUnit.DAYS:
+        newDate.setHours(23, 59, 59, 999);
+        break;
+      case TimeUnit.WEEKS: {
+        // First get to the start of the week using truncateDate
+        const weekStart = truncateDate(newDate, TimeUnit.WEEKS);
+        // Then add 6 days and set to end of that day
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        return new ChronoBox<TFormat>(weekEnd, this.format);
+      }
+      case TimeUnit.MONTHS: {
+        // Set to the first day of the next month and subtract 1 millisecond
+        const monthEnd = new Date(
+          newDate.getFullYear(),
+          newDate.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999
+        );
+        return new ChronoBox<TFormat>(monthEnd, this.format);
+      }
+      case TimeUnit.YEARS: {
+        // Set to December 31st of the current year at 23:59:59.999
+        const yearEnd = new Date(
+          newDate.getFullYear(),
+          11,
+          31,
+          23,
+          59,
+          59,
+          999
+        );
+        return new ChronoBox<TFormat>(yearEnd, this.format);
+      }
+      default:
+        const _exhaustiveCheck: never = unit;
+        throw new ChronoBoxError(`Unsupported time unit: ${unit}`);
+    }
+
+    return new ChronoBox<TFormat>(newDate, this.format);
+  }
 }
