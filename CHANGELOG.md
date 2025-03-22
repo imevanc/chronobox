@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/imevanc/chronobox/compare/v1.5.0...v1.6.0) (2025-03-22)
+
+
+### Features
+
+* add relative times ([#24](https://github.com/imevanc/chronobox/issues/24)) ([9a95505](https://github.com/imevanc/chronobox/commit/9a955050802dd88c25ffcf3db809771e026a6a0e))
+
 # [1.5.0](https://github.com/imevanc/chronobox/compare/v1.4.0...v1.5.0) (2025-03-13)
 
 
